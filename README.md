@@ -6,12 +6,14 @@
 Chuẩn bị môi trường:
 - máy chạy Ubuntu1404
 - Các máy ảo có 3 card mạng tương ứng:với các dải mạng Local, External và Replicate
+
 #### B.1. Sửa file /etc/hosts
     127.0.0.1       localhost
     10.10.10.154     cephmon
     10.10.10.155     ceph1
     10.10.10.157     ceph2
     10.10.10.158     ceph3
+    
 #### B.2. Tải trusted key và add repo, cài đặt
     wget -q -O- 'https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc' | sudo apt-key add -
     echo deb http://ceph.com/debian-hammer/ $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/ceph.list
