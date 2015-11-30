@@ -2,42 +2,23 @@
 
 ### A. Mô hình LAB
 ![Alt text](http://i.imgur.com/Cu50qBU.png)
-### B. Cài đặt Ceph
+### B. Thiết lập trên node MON
 Chuẩn bị môi trường:
-- 4 máy ảo chạy Ubuntu1404
-- Disable iptables
+- máy chạy Ubuntu1404
 - Các máy ảo có 3 card mạng tương ứng:với các dải mạng Local, External và Replicate
-
-#### B.1. Truy cập bằng tài khoản root vào máy các máy chủ và tải các gói, script chuẩn bị cho quá trình cài đặt
-```sh
-apt-get update
-```
-
-#### B.2. Sửa file /etc/hosts
+#### B.1. Sửa file /etc/hosts
     127.0.0.1       localhost
     10.10.10.154     cephmon
     10.10.10.155     ceph1
     10.10.10.157     ceph2
     10.10.10.158     ceph3
-
-#### B.3. Tạo cặp khóa SSH trên node MON
-    ssh-keygen
-    Enter file in which to save the key (/home/user_name/.ssh/id_rsa): [press enter]
-    Enter passphrase (empty for no passphrase): [press enter]
-    Enter same passphrase again: [press enter]
-	
-#### B.4. Chuyển khóa public sang các node CEPH khác
-    ssh-copy-id root@ceph2
-    ssh-copy-id root@ceph3
-    ssh-copy-id root@ceph1
-	
-#### B.5. Tải trusted key và add repo, cài đặt trên các node	
+#### B.2. Tải trusted key và add repo, cài đặt
     wget -q -O- 'https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc' | sudo apt-key add -
     echo deb http://ceph.com/debian-hammer/ $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/ceph.list
 	apt-get update
 	apt-get install ceph -y
 	
-#### B.6. Kiểm tra gói cài đặt
+#### B.3. Kiểm tra gói cài đặt
 ```sh
 dpkg -l | egrep -i "ceph|rados|rbd"
 ```
@@ -55,12 +36,12 @@ ii  python-cephfs                        0.94.5-1trusty                   amd64 
 ii  python-rados                         0.94.5-1trusty                   amd64        Python libraries for the Ceph librados library
 ii  python-rbd                           0.94.5-1trusty                   amd64        Python libraries for the Ceph librbd library
 ```
-#### B.7. Tạo FSID cho Ceph Cluster
+#### B.4. Tạo FSID cho Ceph Cluster
 ```sh
 uuidgen
 df1bc49a-36e8-4669-a5ce-03f2ec635102
 ```
-#### B.7. Tạo thư mục ceph và file ceph.conf trên MON
+#### B.5. Tạo thư mục ceph và file ceph.conf 
 ```sh
 mkdir /etc/ceph
 vim /etc/ceph/ceph.conf
@@ -88,33 +69,37 @@ mon addr = 10.10.10.154
 [osd]
 osd crush update on start = false
 ```
-#### B.8.Tạo keyring và monitor secret key
+#### B.6.Tạo keyring và monitor secret key
 ```sh
 ceph-authtool --create-keyring /tmp/ceph.mon.keyring --gen-key -n mon. --cap mon 'allow *'
 ```
-#### B.9.Tạo client.admin user và thêm user vào keyring
+#### B.7.Tạo client.admin user và thêm user vào keyring
 ```sh
 ceph-authtool --create-keyring /etc/ceph/ceph.client.admin.keyring --gen-key -n client.admin --set-uid=0 --cap mon 'allow *' --cap osd 'allow *' --cap mds 'allow'
 ```
-#### B.10.Thêm client.admin key vào ceph.mon.keyring:
+#### B.8.Thêm client.admin key vào ceph.mon.keyring:
 ```sh
 ceph-authtool /tmp/ceph.mon.keyring --import-keyring /etc/ceph/ceph.client.admin.keyring
 ```
-#### B.11. Sinh monitor map 
+#### B.9. Sinh monitor map 
 ```sh
 monmaptool --create --add cephmon 10.10.10.154 --fsid df1bc49a-36e8-4669-a5ce-03f2ec635102 /tmp/monmap
 ```
-#### B.12. Tạo thư mục cho monitor như là /path/cluster_name-monitor_node:
+#### B.10. Tạo thư mục cho monitor như là /path/cluster_name-monitor_node:
 ```sh
 mkdir /var/lib/ceph/mon/ceph-cephmon
 ```
-#### B.12. Tạo thư mục cho monitor như là /path/cluster_name-monitor_node:
+#### B.11. Tạo thư mục cho monitor như là /path/cluster_name-monitor_node:
 ```sh
 mkdir /var/lib/ceph/mon/ceph-cephmon
 ```
-#### B.13. Tạo thư mục cho monitor deemon
+#### B.12. Tạo thư mục cho monitor deemon
 ```sh
 ceph-mon --mkfs -i cephmon --monmap /tmp/monmap --keyring /tmp/ceph.mon.keyring
 ```
+### B. Thiết lập trên các node OSD
+
+
+
 
 ### C. Thiết kế
